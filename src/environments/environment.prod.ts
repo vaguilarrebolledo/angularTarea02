@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  baseURL: null,
+  baseUrl: null,
   apiKey: null
 };
