@@ -7,7 +7,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "prebuild": "node scripts/set-env.js",
-    "build": "ng build --configuration production"
+    "build": "ng build"
   },
   "prettier": {
     "printWidth": 100,
@@ -29,6 +29,7 @@
     "@angular/forms": "^20.3.0",
     "@angular/platform-browser": "^20.3.0",
     "@angular/router": "^20.3.0",
+    "dotenv": "^17.2.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
