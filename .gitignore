@@ -41,6 +41,4 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
-# Ignorar environments
-src/environments/environment.ts
-src/environments/environment.prod.ts
+
