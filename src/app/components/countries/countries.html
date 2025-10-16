@@ -1,0 +1,14 @@
+<h2>Paises</h2>
+
+<div *ngIf="countries.length === 0; else countryList">
+  <p>Cargando paises...</p>
+</div>
+
+<ng-template #countryList>
+  <select>
+    <option *ngFor="let country of countries" [value]="country.ID">
+      {{ country.LocalizedName }}
+    </option>
+  </select>
+</ng-template>
+

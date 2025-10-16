@@ -1,0 +1,175 @@
+<div class="weather-container">
+  <div class="weather-header">
+    <h2>Condiciones del Clima</h2>
+    <div class="controls">
+      <button 
+        class="btn btn-secondary" 
+        (click)="toggleDetails()"
+        [disabled]="loading">
+        {{ showDetails ? 'Vista Simple' : 'Vista Detallada' }}
+      </button>
+      <button 
+        class="btn btn-primary" 
+        (click)="refreshWeather()"
+        [disabled]="loading">
+        <span *ngIf="loading" class="spinner"></span>
+        {{ loading ? 'Cargando...' : 'Actualizar' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Búsqueda de ubicaciones -->
+  <div class="search-section">
+    <div class="search-container">
+      <input 
+        type="text" 
+        class="search-input"
+        [(ngModel)]="searchQuery"
+        (input)="searchLocations()"
+        placeholder="Buscar ciudad..."
+        autocomplete="off">
+      
+      <div *ngIf="searchResults.length > 0" class="search-results">
+        <div 
+          *ngFor="let location of searchResults" 
+          class="search-result-item"
+          (click)="selectLocation(location)">
+          <strong>{{ location.LocalizedName }}</strong>
+          <span class="location-details">
+            {{ location.Country?.LocalizedName }}, {{ location.Region?.LocalizedName }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje de error -->
+  <div *ngIf="error" class="error-message">
+    <i class="error-icon">⚠️</i>
+    {{ error }}
+  </div>
+
+  <!-- Datos del clima -->
+  <div *ngIf="currentWeather && !loading" class="weather-content">
+    <div class="weather-main">
+      <div class="weather-primary">
+        <div class="weather-icon">
+          <img 
+            [src]="getWeatherIconUrl(currentWeather.WeatherIcon)" 
+            [alt]="currentWeather.WeatherText"
+            (error)="onImageError($event)"
+            [style.display]="imageLoadError ? 'none' : 'block'">
+          <div *ngIf="imageLoadError" class="weather-icon-fallback">
+            {{ getWeatherEmoji(currentWeather.WeatherIcon) }}
+          </div>
+        </div>
+        <div class="weather-info">
+          <h3 class="weather-text">{{ currentWeather.WeatherText }}</h3>
+          <div class="temperature">
+            <span class="temp-metric">{{ getTemperature(currentWeather.Temperature, 'metric') }}</span>
+            <span class="temp-imperial">{{ getTemperature(currentWeather.Temperature, 'imperial') }}</span>
+          </div>
+          <div class="day-time">
+            <span class="time-indicator" [class.day]="currentWeather.IsDayTime" [class.night]="!currentWeather.IsDayTime">
+              {{ currentWeather.IsDayTime ? '☀️ Día' : '🌙 Noche' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="weather-meta">
+        <p class="observation-time">
+          <strong>Última observación:</strong><br>
+          {{ formatDateTime(currentWeather.LocalObservationDateTime) }}
+        </p>
+        <div *ngIf="currentWeather.HasPrecipitation" class="precipitation">
+          <span class="precipitation-indicator">🌧️</span>
+          <span>{{ currentWeather.PrecipitationType || 'Precipitación' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vista detallada -->
+    <div *ngIf="showDetails" class="weather-details">
+      <h4>Detalles del Clima</h4>
+      
+      <div class="details-grid">
+        <!-- Sensación térmica -->
+        <div *ngIf="currentWeather.RealFeelTemperature" class="detail-item">
+          <label>Sensación Térmica:</label>
+          <div class="detail-value">
+            <span>{{ getTemperature(currentWeather.RealFeelTemperature, 'metric') }}</span>
+            <small>({{ getTemperature(currentWeather.RealFeelTemperature, 'imperial') }})</small>
+          </div>
+        </div>
+
+        <!-- Humedad -->
+        <div *ngIf="currentWeather.RelativeHumidity" class="detail-item">
+          <label>Humedad Relativa:</label>
+          <div class="detail-value">{{ currentWeather.RelativeHumidity }}%</div>
+        </div>
+
+        <!-- Viento -->
+        <div *ngIf="currentWeather.Wind" class="detail-item">
+          <label>Viento:</label>
+          <div class="detail-value">
+            <div>{{ getWindSpeed(currentWeather.Wind, 'metric') }}</div>
+            <small>{{ currentWeather.Wind.Direction?.Localized || currentWeather.Wind.Direction?.English }}</small>
+          </div>
+        </div>
+
+        <!-- Índice UV -->
+        <div *ngIf="currentWeather.UVIndex !== undefined" class="detail-item">
+          <label>Índice UV:</label>
+          <div class="detail-value">
+            <span class="uv-index" [class]="'uv-' + currentWeather.UVIndex">
+              {{ currentWeather.UVIndex }}
+            </span>
+            <small>{{ currentWeather.UVIndexText }}</small>
+          </div>
+        </div>
+
+        <!-- Visibilidad -->
+        <div *ngIf="currentWeather.Visibility" class="detail-item">
+          <label>Visibilidad:</label>
+          <div class="detail-value">
+            <span>{{ currentWeather.Visibility.Metric?.Value }} {{ currentWeather.Visibility.Metric?.Unit }}</span>
+            <small>({{ currentWeather.Visibility.Imperial?.Value }} {{ currentWeather.Visibility.Imperial?.Unit }})</small>
+          </div>
+        </div>
+
+        <!-- Presión -->
+        <div *ngIf="currentWeather.Pressure" class="detail-item">
+          <label>Presión Atmosférica:</label>
+          <div class="detail-value">
+            <span>{{ currentWeather.Pressure.Metric?.Value }} {{ currentWeather.Pressure.Metric?.Unit }}</span>
+            <small *ngIf="currentWeather.PressureTendency">
+              ({{ currentWeather.PressureTendency.LocalizedText }})
+            </small>
+          </div>
+        </div>
+
+        <!-- Cobertura de nubes -->
+        <div *ngIf="currentWeather.CloudCover !== undefined" class="detail-item">
+          <label>Cobertura de Nubes:</label>
+          <div class="detail-value">{{ currentWeather.CloudCover }}%</div>
+        </div>
+
+        <!-- Techo de nubes -->
+        <div *ngIf="currentWeather.Ceiling" class="detail-item">
+          <label>Techo de Nubes:</label>
+          <div class="detail-value">
+            <span>{{ currentWeather.Ceiling.Metric?.Value }} {{ currentWeather.Ceiling.Metric?.Unit }}</span>
+            <small>({{ currentWeather.Ceiling.Imperial?.Value }} {{ currentWeather.Ceiling.Imperial?.Unit }})</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado de carga -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner-large"></div>
+    <p>Obteniendo datos del clima...</p>
+  </div>
+</div>

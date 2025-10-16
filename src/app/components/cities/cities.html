@@ -1,0 +1,14 @@
+<h2>Ciudades</h2>
+
+<div *ngIf="cities.length === 0; else cityList">
+  <p>Cargando ciudades...</p>
+</div>
+
+<ng-template #cityList>
+  <select>
+    <option *ngFor="let city of cities" [value]="city.Key">
+      {{ city.LocalizedName }}
+    </option>
+  </select>
+</ng-template>
+

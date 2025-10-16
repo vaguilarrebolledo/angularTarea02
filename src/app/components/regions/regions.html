@@ -1,0 +1,16 @@
+<h2>Regiones</h2>
+
+<div *ngIf="regions.length === 0; else regionList">
+  <p>Cargando regiones...</p>
+</div>
+
+<ng-template #regionList>
+  <label for="region-select">Elige una región:</label>
+  <select id="region-select" (change)="onRegionChange($event)">
+    <option *ngFor="let region of regions" [value]="region.ID">
+      {{ region.LocalizedName }}
+    </option>
+  </select>
+</ng-template>
+
+
